@@ -16,7 +16,7 @@ class TrackingPointsScene(object):
         scene.removeAllGraphics()
 
         material_module = scene.getMaterialmodule()
-        gold_material = material_module.findMaterialByName('gold')
+        gold_material = material_module.findMaterialByName('cyan')
         green_material = material_module.findMaterialByName('green')
 
         points = scene.createGraphicsPoints()
@@ -27,7 +27,7 @@ class TrackingPointsScene(object):
         points.setFieldDomainType(Field.DOMAIN_TYPE_DATAPOINTS)
         attributes = points.getGraphicspointattributes()
         attributes.setGlyphShapeType(Glyph.SHAPE_TYPE_SPHERE)
-        attributes.setBaseSize(5.7)
+        attributes.setBaseSize(7.5)
 
         scene.setSelectionField(tracking_points_model.get_selection_field())
         scene.endChange()

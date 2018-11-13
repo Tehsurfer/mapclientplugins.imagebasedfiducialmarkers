@@ -1,5 +1,5 @@
-
 import numpy as np
+import cv2
 
 from sparc.videotracking.processing import Processing
 from sparc.videotracking.lkopticalflow import LKOpticalFlow
@@ -16,15 +16,12 @@ class TrackingTool(object):
         self._tracking_points_model = model.get_tracking_points_model()
         self._image_plane_model = model.get_image_plane_model()
         self._processor = Processing()
-        self._object_tracker = LKOpticalFlow(win=(20, 20), max_level=2)
+        self._object_tracker = LKOpticalFlow(win=(40, 40), max_level=2)
         self._key_index = -1
 
     def track_key_points(self):
         key_points = self._tracking_points_model.get_key_points()
         if len(key_points):
-            if self._key_index == -1:
-                # Have to at least analyse something to set up the mask in the processor.
-                self._analyse_roi(0, (0, 0, 1, 1))
             coordinate_field = self._tracking_points_model.get_coordinate_field()
             field_module = coordinate_field.getFieldmodule()
             field_module.beginChange()
@@ -32,16 +29,16 @@ class TrackingTool(object):
             numpy_points = np.asarray(image_points, dtype=np.float32)
             number_of_images = self._image_plane_model.get_number_of_images()
             frames_per_second = self._master_model.get_frames_per_second()
-            previous_gray_image = self._processor.get_gray_image()
+            _, previous_gray_image = self._processor.get_filtered_image()
             image_index = self._key_index
             while image_index < number_of_images:
                 time = self._image_plane_model.get_time_for_frame_index(image_index, frames_per_second)
                 file_name = self._image_plane_model.get_image_file_name_at(image_index)
                 self._process_image(file_name)
-                current_gray_image = self._processor.get_gray_image()
+                _, current_gray_image = self._processor.get_filtered_image()
 
                 new_numpy_points, st, err = self._object_tracker.lk(previous_gray_image, current_gray_image, numpy_points)
-                new_image_points = [(float(point[0]), float(point[1])) for point in new_numpy_points]
+                new_image_points = [(int(point[0]) + 0.5, int(point[1]) + 0.5) for point in new_numpy_points]
                 new_key_points = self._image_plane_model.convert_to_model_coordinates(new_image_points)
                 self._tracking_points_model.set_key_points_at_time(new_key_points, time)
                 numpy_points = new_numpy_points
@@ -53,21 +50,24 @@ class TrackingTool(object):
     def analyse_roi(self, image_index, zinc_sceneviewer, element, rectangle_description):
         image_roi = self._convert_to_image_roi(zinc_sceneviewer, element, rectangle_description)
         image_key_points = self._analyse_roi(image_index, image_roi)
-        image_points = [key_point.pt for key_point in image_key_points]
+        # image_points = [key_point.pt for key_point in image_key_points]
+        image_points = image_key_points.tolist()
         key_points = self._image_plane_model.convert_to_model_coordinates(image_points)
+
         self._tracking_points_model.create_electrode_key_points(key_points)
 
     def _process_image(self, file_name):
         self._processor.read_image(file_name)
-        self._processor.filter_and_threshold()
+        self._processor.rgb_and_blur_and_hsv(threshold=9)
+        self._processor.detect_electrode()
 
     def _analyse_roi(self, image_index, image_roi):
         self._key_index = image_index
         file_name = self._image_plane_model.get_image_file_name_at(image_index)
         self._process_image(file_name)
         self._processor.mask_and_image(image_roi)
-        image_points, dst = self._processor.feature_detect()
-
+        self._processor.final_mask()
+        image_points, dst = self._processor.draw_electrodes()
         return image_points
 
     def _convert_to_image_roi(self, scene_viewer, element, rectangle_description):
