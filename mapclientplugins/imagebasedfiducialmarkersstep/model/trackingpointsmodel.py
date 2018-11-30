@@ -8,9 +8,32 @@ class NodeCreator(AbstractNodeDataObject):
     def __init__(self, coordinates):
         super(NodeCreator, self).__init__(['coordinates'])
         self._coordinates = coordinates
+        self._label = None
 
     def coordinates(self):
         return self._coordinates
+
+    def set_label(self, label):
+        self._label = label
+
+    def label(self):
+        return self._label
+
+
+FIDUCIAL_MARKER_LABELS = [
+    'lv_apex',
+    'rv_apex',
+    'lv1',
+    'lv2',
+    'sept1',
+    'sept2',
+    'rv1',
+    'rv2',
+    'rb1',
+    'rb2',
+    'lb1',
+    'lb2',
+]
 
 
 class KeyPoint(object):
@@ -38,7 +61,10 @@ class ElectrodeKeyPoint(KeyPoint):
 
 
 class SegmentedKeyPoint(KeyPoint):
-    pass
+
+    def __init__(self, node, time, label):
+        super(SegmentedKeyPoint, self).__init__(node, time)
+        self._label = label
 
 
 class TrackingPointsModel(object):
@@ -47,15 +73,22 @@ class TrackingPointsModel(object):
         self._master_model = master_model
         self._region = None
         self._coordinate_field = None
+        self._label_field = None
         self._selection_group = None
         self._selection_group_field = None
         self._key_points = []
+        self._used_labels = []
+        self._unused_labels = FIDUCIAL_MARKER_LABELS
+        self._context_menu_callback = None
 
     def get_region(self):
         return self._region
 
     def get_coordinate_field(self):
         return self._coordinate_field
+
+    def count(self):
+        return len(self._key_points)
 
     def select_node(self, identifier):
         node = self._get_node(identifier)
@@ -70,15 +103,22 @@ class TrackingPointsModel(object):
         node = self._get_node(identifier)
         return self._selection_group.containsNode(node)
 
-    def _create_node(self, location, time):
+    def _create_node(self, location, time, label=None):
         field_module = self._coordinate_field.getFieldmodule()
         node_creator = NodeCreator(location)
         node_creator.set_time_sequence(self._master_model.get_time_sequence())
         node_creator.set_time_sequence_field_names(['coordinates'])
+        if label is not None:
+            node_creator.set_field_names(['coordinates', 'label'])
+            node_creator.set_label(label)
+            node_creator.set_time_sequence_field_names(['coordinates', 'label'])
         identifier = create_node(field_module, node_creator,
                                  node_set_name='datapoints', time=time)
 
         return self._get_node(identifier)
+
+    def set_context_menu_callback(self, callback):
+        self._context_menu_callback = callback
 
     def set_node_location(self, node, location):
         time = self._master_model.get_timekeeper_time()
@@ -128,11 +168,27 @@ class TrackingPointsModel(object):
     def get_selection_field(self):
         return self._selection_group_field
 
+    def get_label_field(self):
+        return self._label_field
+
+    def _get_next_label(self):
+        if len(self._unused_labels) > 0:
+            label = self._unused_labels.pop(0)
+        else:
+            label = self._used_labels.pop(0)
+
+        self._used_labels.append(label)
+
+        return label
+
     def create_segmented_key_point(self, location):
         time = self._master_model.get_timekeeper_time()
-        node = self._create_node(location, time)
+        label = self._get_next_label()
+        node = self._create_node(location, time, label=label)
         self.select_node(node.getIdentifier())
-        self._key_points.append(SegmentedKeyPoint(node, time))
+        self._key_points.append(SegmentedKeyPoint(node, time, label))
+
+        return node
 
     def create_electrode_key_points(self, key_points):
         time = self._master_model.get_timekeeper_time()
@@ -173,15 +229,16 @@ class TrackingPointsModel(object):
         return key_points
 
     def create_model(self):
+        self.clear()
         default_region = self._master_model.get_default_region()
-        if self._region is not None:
-            default_region.removeChild(self._region)
 
         self._region = default_region.createChild('tracking')
         self._coordinate_field = create_finite_element_field(self._region)
 
         field_module = self._region.getFieldmodule()
         field_module.beginChange()
+        self._label_field = field_module.createFieldStoredString()
+        self._label_field.setName('label')
         node_set = field_module.findNodesetByName('datapoints')
 
         # Setup the selection fields
@@ -189,3 +246,12 @@ class TrackingPointsModel(object):
         selection_group = self._selection_group_field.createFieldNodeGroup(node_set)
         self._selection_group = selection_group.getNodesetGroup()
         field_module.endChange()
+
+    def clear(self):
+        default_region = self._master_model.get_default_region()
+        if self._region is not None:
+            default_region.removeChild(self._region)
+
+    def context_menu_requested(self, node_id, x, y):
+        self._context_menu_callback(x, y, self._used_labels, self._unused_labels)
+

@@ -3,8 +3,6 @@ from __future__ import division
 from PySideX import QtCore
 from opencmiss.utils.zinc import defineStandardVisualisationTools
 
-from opencmiss.zinc.context import Context
-
 from mapclientplugins.imagebasedfiducialmarkersstep.model.imageplanemodel import ImagePlaneModel
 from mapclientplugins.imagebasedfiducialmarkersstep.model.trackingpointsmodel import TrackingPointsModel
 from mapclientplugins.imagebasedfiducialmarkersstep.scene.imageplanescene import ImagePlaneScene
@@ -13,13 +11,13 @@ from mapclientplugins.imagebasedfiducialmarkersstep.scene.trackingpointsscene im
 
 class ImageBasedFiducialMarkersMasterModel(object):
 
-    def __init__(self):
+    def __init__(self, image_context_data):
         self._settings = {
-            'frames-per-second': 25,
             'time-loop': False
         }
 
-        self._context = Context("ImageBasedFiducialMarkers")
+        self._context = image_context_data.get_context()
+        self._shareable_widget = image_context_data.get_shareable_open_gl_widget()
         defineStandardVisualisationTools(self._context)
         self._default_region = self._context.getDefaultRegion()
 
@@ -31,6 +29,9 @@ class ImageBasedFiducialMarkersMasterModel(object):
         self._frame_index_update = None
 
         self._image_plane_model = ImagePlaneModel(self)
+        self._image_plane_model.set_image_information(image_context_data.get_image_file_names(),
+                                                      image_context_data.get_frames_per_second(),
+                                                      image_context_data.get_image_dimensions())
         self._tracking_points_model = TrackingPointsModel(self)
         self._image_plane_scene = ImagePlaneScene(self)
         self._tracking_points_scene = TrackingPointsScene(self)
@@ -41,8 +42,8 @@ class ImageBasedFiducialMarkersMasterModel(object):
         self._timer.timeout.connect(self._timeout)
 
     def _timeout(self):
-        increment = 1000 / self._settings['frames-per-second'] / 1000
-        duration = self._image_plane_model.get_frame_count() / self._settings['frames-per-second']
+        increment = 1000 / self._image_plane_model.get_frames_per_second() / 1000
+        duration = self._image_plane_model.get_frame_count() / self._image_plane_model.get_frames_per_second()
         if not self._settings['time-loop'] and (self._current_time + increment) > duration:
             self._current_time = duration + 1e-08
         else:
@@ -52,8 +53,7 @@ class ImageBasedFiducialMarkersMasterModel(object):
 
         self._timekeeper.setTime(self._current_time)
         self._time_value_update(self._current_time)
-        frame_index = self._image_plane_model.get_frame_index_for_time(self._current_time,
-                                                                       self._settings['frames-per-second']) + 1
+        frame_index = self._image_plane_model.get_frame_index_for_time(self._current_time) + 1
         self._frame_index_update(frame_index)
 
     def register_frame_index_update_callback(self, frame_index_update_callback):
@@ -64,30 +64,26 @@ class ImageBasedFiducialMarkersMasterModel(object):
 
     def set_frame_index(self, frame_index):
         frame_value = frame_index - 1
-        self._current_time = self._image_plane_model.get_time_for_frame_index(frame_value, self._settings['frames-per-second'])
+        self._current_time = self._image_plane_model.get_time_for_frame_index(frame_value)
         self._timekeeper.setTime(self._current_time)
         self._time_value_update(self._current_time)
+
+    def get_frame_index(self):
+        return self._image_plane_model.get_frame_index_for_time(self._current_time)
 
     def set_time_value(self, time):
         self._current_time = time
         self._timekeeper.setTime(time)
-        frame_index = self._image_plane_model.get_frame_index_for_time(time, self._settings['frames-per-second']) + 1
+        frame_index = self._image_plane_model.get_frame_index_for_time(time) + 1
         self._frame_index_update(frame_index)
 
     def get_time_sequence(self):
         time_sequence = []
         for frame_value in range(self._image_plane_model.get_frame_count()):
-            time = self._image_plane_model.get_time_for_frame_index(frame_value, self._settings['frames-per-second'])
+            time = self._image_plane_model.get_time_for_frame_index(frame_value)
             time_sequence.append(time)
 
         return time_sequence
-
-    def set_frames_per_second(self, value):
-        self._settings['frames-per-second'] = value
-        self._image_plane_model.set_duration_value(value)
-
-    def get_frames_per_second(self):
-        return self._settings['frames-per-second']
 
     def set_time_loop(self, state):
         self._settings['time-loop'] = state
@@ -96,7 +92,7 @@ class ImageBasedFiducialMarkersMasterModel(object):
         return self._settings['time-loop']
 
     def play(self):
-        self._timer.start(1000 / self._settings['frames-per-second'])
+        self._timer.start(1000 / self._image_plane_model.get_frames_per_second())
 
     def stop(self):
         self._timer.stop()
@@ -106,6 +102,9 @@ class ImageBasedFiducialMarkersMasterModel(object):
 
     def get_context(self):
         return self._context
+
+    def get_shareable_open_gl_widget(self):
+        return self._shareable_widget
 
     def get_default_region(self):
         return self._default_region
@@ -137,9 +136,10 @@ class ImageBasedFiducialMarkersMasterModel(object):
     def get_tracking_points_scene(self):
         return self._tracking_points_scene
 
+    def clear_tracking_points_model(self):
+        self._tracking_points_model.clear()
+
     def reset(self):
-        self._image_plane_model.create_model()
-        self._image_plane_scene.create_graphics()
         self._tracking_points_model.create_model()
         self._tracking_points_scene.create_graphics()
 

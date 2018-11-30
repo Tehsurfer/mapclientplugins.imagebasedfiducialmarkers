@@ -28,15 +28,17 @@ class ImageBasedFiducialMarkersStep(WorkflowStepMountPoint):
         # Add any other initialisation code here:
         self._icon = QtGui.QImage(':/imagebasedfiducialmarkersstep/images/image-processing.png')
         # Ports:
-        self.addPort(('http://physiomeproject.org/workflow/1.0/rdf-schema#port',
-                      'http://physiomeproject.org/workflow/1.0/rdf-schema#provides',
-                      'fiducial_marker_data'))
+        self._time_labelled_fiducial_marker_locations = (
+            'http://physiomeproject.org/workflow/1.0/rdf-schema#port',
+            'http://physiomeproject.org/workflow/1.0/rdf-schema#provides',
+            'http://physiomeproject.org/workflow/1.0/rdf-schema#time_labelled_fiducial_marker_locations')
         self.addPort(('http://physiomeproject.org/workflow/1.0/rdf-schema#port',
                       'http://physiomeproject.org/workflow/1.0/rdf-schema#uses',
-                      'http://physiomeproject.org/workflow/1.0/rdf-schema#images'))
+                      'http://physiomeproject.org/workflow/1.0/rdf-schema#image_context_data'))
+        self.addPort(self._time_labelled_fiducial_marker_locations)
         # Port data:
-        self._portData0 = None # fiducial_marker_data
-        self._images_info = None # http://physiomeproject.org/workflow/1.0/rdf-schema#images
+        self._fiducial_marker_data = None # fiducial_marker_data
+        self._images_context_data = None
         # Config:
         self._config = {'identifier': ''}
         self._view = None
@@ -56,7 +58,7 @@ class ImageBasedFiducialMarkersStep(WorkflowStepMountPoint):
         except FileNotFoundError:
             pass
 
-        self._model = ImageBasedFiducialMarkersMasterModel()
+        self._model = ImageBasedFiducialMarkersMasterModel(self._images_context_data)
         if 'model' in all_settings:
             self._model.set_settings(all_settings['model'])
 
@@ -64,7 +66,7 @@ class ImageBasedFiducialMarkersStep(WorkflowStepMountPoint):
         if 'view' in all_settings:
             self._view.set_settings(all_settings['view'])
 
-        self._view.set_images_info(self._images_info)
+        # self._view.set_images_info(self._images_context_data)
         self._view.register_done_callback(self._interactionDone)
         self._setCurrentWidget(self._view)
 
@@ -74,7 +76,8 @@ class ImageBasedFiducialMarkersStep(WorkflowStepMountPoint):
         with open(self._get_settings_file_name(), 'w') as f:
             f.write(settings_in_string_form)
 
-        self._portData0 = self._model.get_tracking_points_model().get_key_points_description()
+        self._fiducial_marker_data = self._model.get_tracking_points_model().get_key_points_description()
+        self._model.clear_tracking_points_model()
         self._view = None
         self._model = None
         self._doneExecution()
@@ -91,7 +94,7 @@ class ImageBasedFiducialMarkersStep(WorkflowStepMountPoint):
         :param index: Index of the port to return.
         :param dataIn: The data to set for the port at the given index.
         """
-        self._images_info = dataIn # http://physiomeproject.org/workflow/1.0/rdf-schema#images
+        self._images_context_data = dataIn # http://physiomeproject.org/workflow/1.0/rdf-schema#image_context_data
 
     def getPortData(self, index):
         """
@@ -101,7 +104,7 @@ class ImageBasedFiducialMarkersStep(WorkflowStepMountPoint):
 
         :param index: Index of the port to return.
         """
-        return self._portData0  # fiducial_marker_data
+        return self._fiducial_marker_data
 
     def configure(self):
         """

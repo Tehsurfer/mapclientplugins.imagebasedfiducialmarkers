@@ -30,3 +30,6 @@ class DataPointTool(object):
 
     def remove_node(self, node_identifier):
         self._points_model.remove_node(node_identifier)
+
+    def context_menu_requested(self, node_id, x, y):
+        self._points_model.context_menu_requested(node_id, x, y)
