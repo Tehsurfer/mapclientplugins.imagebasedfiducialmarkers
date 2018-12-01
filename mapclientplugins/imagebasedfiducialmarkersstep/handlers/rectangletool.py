@@ -1,3 +1,4 @@
+from __future__ import division
 
 from opencmiss.zinc.glyph import Glyph
 from opencmiss.zinc.scenecoordinatesystem import SCENECOORDINATESYSTEM_WINDOW_PIXEL_TOP_LEFT
