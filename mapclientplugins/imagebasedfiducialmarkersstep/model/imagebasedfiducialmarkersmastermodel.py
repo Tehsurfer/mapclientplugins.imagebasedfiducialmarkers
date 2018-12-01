@@ -54,7 +54,7 @@ class ImageBasedFiducialMarkersMasterModel(object):
         self._timekeeper.setTime(self._current_time)
         self._time_value_update(self._current_time)
         frame_index = self._image_plane_model.get_frame_index_for_time(self._current_time) + 1
-        self._frame_index_update(frame_index)
+        self.set_frame_index(frame_index)
 
     def register_frame_index_update_callback(self, frame_index_update_callback):
         self._frame_index_update = frame_index_update_callback
