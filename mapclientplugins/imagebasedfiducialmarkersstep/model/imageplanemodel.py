@@ -1,9 +1,5 @@
 from __future__ import division
 
-import get_image_size
-
-from opencmiss.utils.zinc import create_finite_element_field, create_square_2d_finite_element, \
-    create_volume_image_field, create_material_using_image_field
 from opencmiss.utils.maths.algorithms import calculate_line_plane_intersection
 
 
@@ -106,4 +102,4 @@ class ImagePlaneModel(object):
         frame_separation = 1 / frame_count
         initial_offset = frame_separation / 2
 
-        return int((time / duration - initial_offset) / frame_separation + 0.5)
+        return int((time / duration - initial_offset) / frame_separation + 0.5) + 1
