@@ -1,3 +1,4 @@
+from __future__ import division
 
 from PySide import QtGui, QtCore
 
@@ -90,6 +91,11 @@ class ImageBasedFiducialMarkersWidget(QtGui.QWidget):
         self._enter_set_tracking_points()
         minimum_label_width = self._calculate_minimum_label_width()
         self._ui.statusText_label.setMinimumWidth(minimum_label_width)
+        maximum_time = self._image_plane_model.get_frame_count() / self._image_plane_model.get_frames_per_second()
+        self._ui.timeValue_doubleSpinBox.setMaximum(maximum_time)
+        print(1 / self._image_plane_model.get_frames_per_second())
+        self._ui.timeValue_doubleSpinBox.setSingleStep(1 / self._image_plane_model.get_frames_per_second())
+        # self._ui.framesPerSecond_spinBox.setValue(self._image_plane_model.get_frames_per_second())
 
     def _calculate_minimum_label_width(self):
         label = self._ui.statusText_label
@@ -181,10 +187,21 @@ class ImageBasedFiducialMarkersWidget(QtGui.QWidget):
         self._settings['view-parameters'] = {'eye': eye, 'look_at': look_at, 'up': up, 'angle': angle}
         return self._settings
 
+    def set_images_info(self, images_info):
+        self._image_plane_model.load_images(images_info)
+        self._image_plane_scene.set_image_material()
+        frame_count = self._image_plane_model.get_frame_count()
+        value = self._model.get_frames_per_second()
+        duration = frame_count / value
+        self._ui.timeValue_doubleSpinBox.setMaximum(duration)
+        self._model.set_maximum_time_value(duration)
+        self._model.set_frame_index(1)
+
     def _update_time_value(self, value):
         self._ui.timeValue_doubleSpinBox.blockSignals(True)
         frame_count = self._image_plane_model.get_frame_count()
-        max_time_value = frame_count / self._ui.framesPerSecond_spinBox.value()
+        # max_time_value = frame_count / self._ui.framesPerSecond_spinBox.value()
+        max_time_value = frame_count / self._image_plane_model.get_frames_per_second()
 
         if value > max_time_value:
             self._ui.timeValue_doubleSpinBox.setValue(max_time_value)
