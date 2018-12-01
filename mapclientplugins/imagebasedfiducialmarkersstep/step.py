@@ -15,6 +15,12 @@ from mapclientplugins.imagebasedfiducialmarkersstep.view.imagebasedfiducialmarke
     ImageBasedFiducialMarkersWidget
 
 
+try:
+    FileNotFoundError
+except NameError:
+    FileNotFoundError = IOError
+
+
 class ImageBasedFiducialMarkersStep(WorkflowStepMountPoint):
     """
     Skeleton step which is intended to be a helpful starting point
@@ -114,7 +120,8 @@ class ImageBasedFiducialMarkersStep(WorkflowStepMountPoint):
         then set:
             self._configured = True
         """
-        dlg = ConfigureDialog(self._main_window)
+        # dlg = ConfigureDialog(self._main_window)
+        dlg = ConfigureDialog()
         dlg.identifierOccursCount = self._identifierOccursCount
         dlg.setConfig(self._config)
         dlg.validate()
