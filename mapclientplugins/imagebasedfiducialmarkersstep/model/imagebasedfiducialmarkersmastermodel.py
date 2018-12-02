@@ -36,6 +36,8 @@ class ImageBasedFiducialMarkersMasterModel(object):
         self._image_plane_scene = ImagePlaneScene(self)
         self._tracking_points_scene = TrackingPointsScene(self)
 
+        self.set_maximum_time_value(image_context_data.get_frame_count() / image_context_data.get_frames_per_second())
+
         self._make_connections()
 
     def _make_connections(self):
@@ -53,8 +55,8 @@ class ImageBasedFiducialMarkersMasterModel(object):
 
         self._timekeeper.setTime(self._current_time)
         self._time_value_update(self._current_time)
-        frame_index = self._image_plane_model.get_frame_index_for_time(self._current_time) + 1
-        self.set_frame_index(frame_index)
+        # frame_index = self._image_plane_model.get_frame_index_for_time(self._current_time) + 1
+        # self.set_frame_index(frame_index)
 
     def register_frame_index_update_callback(self, frame_index_update_callback):
         self._frame_index_update = frame_index_update_callback
@@ -74,8 +76,8 @@ class ImageBasedFiducialMarkersMasterModel(object):
     def set_time_value(self, time):
         self._current_time = time
         self._timekeeper.setTime(time)
-        frame_index = self._image_plane_model.get_frame_index_for_time(time) + 1
-        self._frame_index_update(frame_index)
+        # frame_index = self._image_plane_model.get_frame_index_for_time(time) + 1
+        # self._frame_index_update(frame_index)
 
     def get_time_sequence(self):
         time_sequence = []

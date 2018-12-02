@@ -30,7 +30,6 @@ class ImageBasedFiducialMarkersWidget(QtGui.QWidget):
         self._model = model
         self._model.reset()
         self._model.register_time_value_update_callback(self._update_time_value)
-        self._model.register_frame_index_update_callback(self._update_frame_index)
         self._image_plane_scene = model.get_image_plane_scene()
         self._image_plane_scene.create_graphics()
         self._image_plane_scene.set_image_material()
@@ -57,8 +56,6 @@ class ImageBasedFiducialMarkersWidget(QtGui.QWidget):
         self._ui.done_pushButton.clicked.connect(self._done_clicked)
         self._ui.timeValue_doubleSpinBox.valueChanged.connect(self._time_value_changed)
         self._ui.timePlayStop_pushButton.clicked.connect(self._time_play_stop_clicked)
-        self._ui.frameIndex_spinBox.valueChanged.connect(self._frame_index_value_changed)
-        self._ui.framesPerSecond_spinBox.valueChanged.connect(self._frames_per_second_value_changed)
         self._ui.timeLoop_checkBox.clicked.connect(self._time_loop_clicked)
         self._ui.track_pushButton.clicked.connect(self._track_button_clicked)
 
@@ -112,7 +109,7 @@ class ImageBasedFiducialMarkersWidget(QtGui.QWidget):
     def _track_button_clicked(self):
         if self._tracking_tool.count():
             QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
-            frame_index = self._ui.frameIndex_spinBox.value()
+            frame_index = self._model.get_frame_index()
             self._tracking_tool.track_key_points(frame_index)
             QtGui.QApplication.restoreOverrideCursor()
 
@@ -210,11 +207,6 @@ class ImageBasedFiducialMarkersWidget(QtGui.QWidget):
             self._ui.timeValue_doubleSpinBox.setValue(value)
         self._ui.timeValue_doubleSpinBox.blockSignals(False)
 
-    def _update_frame_index(self, value):
-        self._ui.frameIndex_spinBox.blockSignals(True)
-        self._ui.frameIndex_spinBox.setValue(value)
-        self._ui.frameIndex_spinBox.blockSignals(False)
-
     def _time_value_changed(self, value):
         self._model.set_time_value(value)
 
@@ -235,7 +227,3 @@ class ImageBasedFiducialMarkersWidget(QtGui.QWidget):
 
     def _frame_index_value_changed(self, value):
         self._model.set_frame_index(value)
-
-    def _frames_per_second_value_changed(self, value):
-        self._model.set_frames_per_second(value)
-        self._ui.timeValue_doubleSpinBox.setMaximum(self._image_plane_model.get_frame_count() / value)

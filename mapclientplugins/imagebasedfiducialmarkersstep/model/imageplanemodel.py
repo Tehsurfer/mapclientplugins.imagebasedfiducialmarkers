@@ -93,7 +93,6 @@ class ImagePlaneModel(object):
         duration = frame_count / self._frames_per_second
         frame_separation = 1 / frame_count
         initial_offset = frame_separation / 2
-
         return (index * frame_separation + initial_offset) * duration
 
     def get_frame_index_for_time(self, time):
@@ -101,5 +100,5 @@ class ImagePlaneModel(object):
         duration = frame_count / self._frames_per_second
         frame_separation = 1 / frame_count
         initial_offset = frame_separation / 2
-
         return int((time / duration - initial_offset) / frame_separation + 0.5) + 1
+

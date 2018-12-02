@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'mapclientplugins\imagebasedfiducialmarkersstep\qt\imagebasedfiducialmarkerswidget.ui'
+# Form implementation generated from reading ui file 'qt\imagebasedfiducialmarkerswidget.ui'
 #
-# Created: Fri Nov  2 14:14:13 2018
+# Created: Sun Dec  2 13:56:20 2018
 #      by: pyside-uic 0.2.15 running on PySide 1.2.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -10,7 +10,7 @@
 from PySide import QtCore, QtGui
 
 class Ui_ImageBasedFiducialMarkersWidget(object):
-    def setupUi(self, shared_open_gl_widget, ImageBasedFiducialMarkersWidget):
+    def setupUi(self, shared_open_gl_context, ImageBasedFiducialMarkersWidget):
         ImageBasedFiducialMarkersWidget.setObjectName("ImageBasedFiducialMarkersWidget")
         ImageBasedFiducialMarkersWidget.resize(870, 576)
         self.horizontalLayout = QtGui.QHBoxLayout(ImageBasedFiducialMarkersWidget)
@@ -37,41 +37,6 @@ class Ui_ImageBasedFiducialMarkersWidget(object):
         self.timeLoop_checkBox.setObjectName("timeLoop_checkBox")
         self.gridLayout_4.addWidget(self.timeLoop_checkBox, 1, 2, 1, 1)
         self.verticalLayout.addWidget(self.time_groupBox)
-        self.video_groupBox = QtGui.QGroupBox(self.controlPanel_groupBox)
-        self.video_groupBox.setObjectName("video_groupBox")
-        self.gridLayout_2 = QtGui.QGridLayout(self.video_groupBox)
-        self.gridLayout_2.setObjectName("gridLayout_2")
-        self.frameIndex_label = QtGui.QLabel(self.video_groupBox)
-        self.frameIndex_label.setObjectName("frameIndex_label")
-        self.gridLayout_2.addWidget(self.frameIndex_label, 0, 0, 1, 1)
-        self.framesPerSecond_spinBox = QtGui.QSpinBox(self.video_groupBox)
-        self.framesPerSecond_spinBox.setMinimum(1)
-        self.framesPerSecond_spinBox.setProperty("value", 25)
-        self.framesPerSecond_spinBox.setObjectName("framesPerSecond_spinBox")
-        self.gridLayout_2.addWidget(self.framesPerSecond_spinBox, 1, 1, 1, 1)
-        self.framesPerSecond_label = QtGui.QLabel(self.video_groupBox)
-        self.framesPerSecond_label.setObjectName("framesPerSecond_label")
-        self.gridLayout_2.addWidget(self.framesPerSecond_label, 1, 0, 1, 1)
-        self.frameIndex_spinBox = QtGui.QSpinBox(self.video_groupBox)
-        self.frameIndex_spinBox.setMinimum(1)
-        self.frameIndex_spinBox.setMaximum(10000)
-        self.frameIndex_spinBox.setObjectName("frameIndex_spinBox")
-        self.gridLayout_2.addWidget(self.frameIndex_spinBox, 0, 1, 1, 1)
-        self.numFrames_frame = QtGui.QFrame(self.video_groupBox)
-        self.numFrames_frame.setFrameShape(QtGui.QFrame.StyledPanel)
-        self.numFrames_frame.setFrameShadow(QtGui.QFrame.Raised)
-        self.numFrames_frame.setObjectName("numFrames_frame")
-        self.horizontalLayout_4 = QtGui.QHBoxLayout(self.numFrames_frame)
-        self.horizontalLayout_4.setContentsMargins(0, 0, 0, 0)
-        self.horizontalLayout_4.setObjectName("horizontalLayout_4")
-        self.numFrames_label = QtGui.QLabel(self.numFrames_frame)
-        self.numFrames_label.setObjectName("numFrames_label")
-        self.horizontalLayout_4.addWidget(self.numFrames_label)
-        self.numFramesValue_label = QtGui.QLabel(self.numFrames_frame)
-        self.numFramesValue_label.setObjectName("numFramesValue_label")
-        self.horizontalLayout_4.addWidget(self.numFramesValue_label)
-        self.gridLayout_2.addWidget(self.numFrames_frame, 0, 2, 1, 1)
-        self.verticalLayout.addWidget(self.video_groupBox)
         self.tracking_groupBox = QtGui.QGroupBox(self.controlPanel_groupBox)
         self.tracking_groupBox.setObjectName("tracking_groupBox")
         self.horizontalLayout_5 = QtGui.QHBoxLayout(self.tracking_groupBox)
@@ -112,7 +77,7 @@ class Ui_ImageBasedFiducialMarkersWidget(object):
         self.horizontalLayout_2.addItem(spacerItem2)
         self.verticalLayout.addWidget(self.frame)
         self.horizontalLayout.addWidget(self.controlPanel_groupBox)
-        self.sceneviewer_widget = BaseSceneviewerWidget(ImageBasedFiducialMarkersWidget, shared_open_gl_widget)
+        self.sceneviewer_widget = BaseSceneviewerWidget(ImageBasedFiducialMarkersWidget, shared_open_gl_context)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(1)
         sizePolicy.setVerticalStretch(0)
@@ -131,15 +96,9 @@ class Ui_ImageBasedFiducialMarkersWidget(object):
         self.timePlayStop_pushButton.setText(QtGui.QApplication.translate("ImageBasedFiducialMarkersWidget", "Play", None, QtGui.QApplication.UnicodeUTF8))
         self.timeValue_label.setText(QtGui.QApplication.translate("ImageBasedFiducialMarkersWidget", "Time value:", None, QtGui.QApplication.UnicodeUTF8))
         self.timeLoop_checkBox.setText(QtGui.QApplication.translate("ImageBasedFiducialMarkersWidget", "Loop", None, QtGui.QApplication.UnicodeUTF8))
-        self.video_groupBox.setTitle(QtGui.QApplication.translate("ImageBasedFiducialMarkersWidget", "Video:", None, QtGui.QApplication.UnicodeUTF8))
-        self.frameIndex_label.setText(QtGui.QApplication.translate("ImageBasedFiducialMarkersWidget", "Frame index:", None, QtGui.QApplication.UnicodeUTF8))
-        self.framesPerSecond_label.setText(QtGui.QApplication.translate("ImageBasedFiducialMarkersWidget", "Frames per second:", None, QtGui.QApplication.UnicodeUTF8))
-        self.numFrames_label.setText(QtGui.QApplication.translate("ImageBasedFiducialMarkersWidget", "# frames:", None, QtGui.QApplication.UnicodeUTF8))
-        self.numFramesValue_label.setText(QtGui.QApplication.translate("ImageBasedFiducialMarkersWidget", "TextLabel", None, QtGui.QApplication.UnicodeUTF8))
         self.tracking_groupBox.setTitle(QtGui.QApplication.translate("ImageBasedFiducialMarkersWidget", "Tracking:", None, QtGui.QApplication.UnicodeUTF8))
         self.track_pushButton.setText(QtGui.QApplication.translate("ImageBasedFiducialMarkersWidget", "Track", None, QtGui.QApplication.UnicodeUTF8))
         self.statusText_label.setText(QtGui.QApplication.translate("ImageBasedFiducialMarkersWidget", "TextLabel", None, QtGui.QApplication.UnicodeUTF8))
         self.done_pushButton.setText(QtGui.QApplication.translate("ImageBasedFiducialMarkersWidget", "Done", None, QtGui.QApplication.UnicodeUTF8))
-
 
 from opencmiss.zincwidgets.basesceneviewerwidget import BaseSceneviewerWidget
