@@ -1,4 +1,6 @@
 
+from bisect import bisect_left
+
 from opencmiss.zinc.status import OK as CMISS_OK
 from opencmiss.utils.zinc import create_finite_element_field, create_node, AbstractNodeDataObject
 
@@ -111,7 +113,7 @@ class TrackingPointsModel(object):
         if label is not None:
             node_creator.set_field_names(['coordinates', 'label'])
             node_creator.set_label(label)
-            node_creator.set_time_sequence_field_names(['coordinates', 'label'])
+            node_creator.set_time_sequence_field_names(['coordinates'])
         identifier = create_node(field_module, node_creator,
                                  node_set_name='datapoints', time=time)
 
@@ -122,10 +124,11 @@ class TrackingPointsModel(object):
 
     def set_node_location(self, node, location):
         time = self._master_model.get_timekeeper_time()
+        node_time = _get_nearest_match(self._master_model.get_time_sequence(), time)
         field_module = self._coordinate_field.getFieldmodule()
         field_module.beginChange()
         field_cache = field_module.createFieldcache()
-        field_cache.setTime(time)
+        field_cache.setTime(node_time)
         field_cache.setNode(node)
         self._coordinate_field.assignReal(field_cache, location)
         field_module.endChange()
@@ -183,10 +186,11 @@ class TrackingPointsModel(object):
 
     def create_segmented_key_point(self, location):
         time = self._master_model.get_timekeeper_time()
+        node_time = _get_nearest_match(self._master_model.get_time_sequence(), time)
         label = self._get_next_label()
-        node = self._create_node(location, time, label=label)
+        node = self._create_node(location, node_time, label=label)
         self.select_node(node.getIdentifier())
-        self._key_points.append(SegmentedKeyPoint(node, time, label))
+        self._key_points.append(SegmentedKeyPoint(node, node_time, label))
 
         return node
 
@@ -209,18 +213,17 @@ class TrackingPointsModel(object):
             node = key_point.get_node()
             coordinates = [key_points[index][0], key_points[index][1], 0.0]
             field_cache.setNode(node)
-            self._coordinate_field.assignReal(field_cache, coordinates)
+            result = self._coordinate_field.assignReal(field_cache, coordinates)
 
         field_module.endChange()
 
-    def get_key_points(self):
+    def get_key_points(self, time):
         key_points = []
         field_module = self._coordinate_field.getFieldmodule()
         field_cache = field_module.createFieldcache()
         for key_point in self._key_points:
             node = key_point.get_node()
             field_cache.setNode(node)
-            time = key_point.get_creation_time()
             field_cache.setTime(time)
             result, coordinates = self._coordinate_field.evaluateReal(field_cache, 3)
             if result == CMISS_OK:
@@ -255,3 +258,21 @@ class TrackingPointsModel(object):
     def context_menu_requested(self, node_id, x, y):
         self._context_menu_callback(x, y, self._used_labels, self._unused_labels)
 
+
+def _get_nearest_match(list_of_numbers, target_number):
+    """
+    Assumes list_of_numbers is sorted. Returns closest value to target_number.
+
+    If two numbers are equally close, return the smallest number.
+    """
+    pos = bisect_left(list_of_numbers, target_number)
+    if pos == 0:
+        return list_of_numbers[0]
+    if pos == len(list_of_numbers):
+        return list_of_numbers[-1]
+    before = list_of_numbers[pos - 1]
+    after = list_of_numbers[pos]
+    if after - target_number < target_number - before:
+        return after
+    else:
+        return before

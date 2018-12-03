@@ -5,7 +5,7 @@ from PySide import QtGui, QtCore
 from opencmiss.zinchandlers.scenemanipulation import SceneManipulation
 
 from mapclientplugins.imagebasedfiducialmarkersstep.handlers.datapointadder import DataPointAdder
-from mapclientplugins.imagebasedfiducialmarkersstep.handlers.datapointlabeller import DataPointLabeler
+from mapclientplugins.imagebasedfiducialmarkersstep.handlers.datapointeditor import DataPointEditor
 from mapclientplugins.imagebasedfiducialmarkersstep.handlers.datapointremover import DataPointRemover
 from mapclientplugins.imagebasedfiducialmarkersstep.static.strings import SET_TRACKING_POINTS_STRING
 from mapclientplugins.imagebasedfiducialmarkersstep.tools.datapointtool import DataPointTool
@@ -89,8 +89,10 @@ class ImageBasedFiducialMarkersWidget(QtGui.QWidget):
         minimum_label_width = self._calculate_minimum_label_width()
         self._ui.statusText_label.setMinimumWidth(minimum_label_width)
         maximum_time = self._image_plane_model.get_frame_count() / self._image_plane_model.get_frames_per_second()
-        self._ui.timeValue_doubleSpinBox.setMaximum(maximum_time)
         frame_separation = 1 / self._image_plane_model.get_frames_per_second()
+        self._ui.timeValue_doubleSpinBox.setDecimals(8)
+        self._ui.timeValue_doubleSpinBox.setMinimum(frame_separation / 2)
+        self._ui.timeValue_doubleSpinBox.setMaximum(maximum_time)
         self._ui.timeValue_doubleSpinBox.setSingleStep(frame_separation)
         self._ui.timeValue_doubleSpinBox.setValue(frame_separation / 2)
 
@@ -120,7 +122,7 @@ class ImageBasedFiducialMarkersWidget(QtGui.QWidget):
         self._data_point_adder.set_model(self._data_point_tool)
         self._data_point_remover = DataPointRemover(QtCore.Qt.Key_D)
         self._data_point_remover.set_model(self._data_point_tool)
-        self._data_point_labeler = DataPointLabeler(QtCore.Qt.Key_E)
+        self._data_point_labeler = DataPointEditor(QtCore.Qt.Key_E)
         self._data_point_labeler.set_model(self._data_point_tool)
 
     def _enter_set_tracking_points(self):

@@ -20,7 +20,8 @@ class TrackingTool(object):
         self._key_index = -1
 
     def track_key_points(self, start_index):
-        key_points = self._tracking_points_model.get_key_points()
+        start_time = self._image_plane_model.get_time_for_frame_index(start_index)
+        key_points = self._tracking_points_model.get_key_points(start_time)
         if len(key_points):
             coordinate_field = self._tracking_points_model.get_coordinate_field()
             field_module = coordinate_field.getFieldmodule()
@@ -39,7 +40,8 @@ class TrackingTool(object):
                 self._process_image(file_name)
                 current_gray_image = self._processor.get_gray_image()
 
-                new_numpy_points, st, err = self._object_tracker.lk(previous_gray_image, current_gray_image, numpy_points)
+                new_numpy_points, st, err = self._object_tracker.lk(previous_gray_image, current_gray_image,
+                                                                    numpy_points)
                 new_image_points = [(float(point[0]), float(point[1])) for point in new_numpy_points]
                 new_key_points = self._image_plane_model.convert_to_model_coordinates(new_image_points)
                 self._tracking_points_model.set_key_points_at_time(new_key_points, time)
