@@ -10,6 +10,7 @@ class ImagePlaneScene(object):
         region = image_plane_model.get_region()
         scene = region.getScene()
         coordinate_field = image_plane_model.get_coordinate_field()
+        duration_field = image_plane_model.get_duration_field()
 
         scene.beginChange()
         scene.removeAllGraphics()
@@ -24,7 +25,8 @@ class ImagePlaneScene(object):
         surfaces.setCoordinateField(coordinate_field)
         temp1 = field_module.createFieldComponent(xi, [1, 2])
         temp2 = field_module.createFieldTimeValue(self._master_model.get_timekeeper())
-        texture_field = field_module.createFieldConcatenate([temp1, temp2])
+        temp3 = field_module.createFieldDivide(temp2, duration_field)
+        texture_field = field_module.createFieldConcatenate([temp1, temp3])
         surfaces.setTextureCoordinateField(texture_field)
         scene.endChange()
 

@@ -90,9 +90,9 @@ class ImageBasedFiducialMarkersWidget(QtGui.QWidget):
         self._ui.statusText_label.setMinimumWidth(minimum_label_width)
         maximum_time = self._image_plane_model.get_frame_count() / self._image_plane_model.get_frames_per_second()
         self._ui.timeValue_doubleSpinBox.setMaximum(maximum_time)
-        print(1 / self._image_plane_model.get_frames_per_second())
-        self._ui.timeValue_doubleSpinBox.setSingleStep(1 / self._image_plane_model.get_frames_per_second())
-        # self._ui.framesPerSecond_spinBox.setValue(self._image_plane_model.get_frames_per_second())
+        frame_separation = 1 / self._image_plane_model.get_frames_per_second()
+        self._ui.timeValue_doubleSpinBox.setSingleStep(frame_separation)
+        self._ui.timeValue_doubleSpinBox.setValue(frame_separation / 2)
 
     def _calculate_minimum_label_width(self):
         label = self._ui.statusText_label

@@ -65,6 +65,7 @@ class ImagePlaneModel(object):
         field_module.beginChange()
         field_cache = field_module.createFieldcache()
         field_cache.setMeshLocation(top_left_mesh_location[0], top_left_mesh_location[1])
+
         _, top_left_values = self._scaled_coordinate_field.evaluateReal(field_cache, 3)
         field_cache.setMeshLocation(bottom_right_mesh_location[0], bottom_right_mesh_location[1])
         _, bottom_right_values = self._scaled_coordinate_field.evaluateReal(field_cache, 3)
