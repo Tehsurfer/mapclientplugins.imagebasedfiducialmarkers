@@ -1,6 +1,7 @@
 from __future__ import division
 
 from PySideX import QtCore
+
 from opencmiss.utils.zinc import defineStandardVisualisationTools
 
 from mapclientplugins.imagebasedfiducialmarkersstep.model.imageplanemodel import ImagePlaneModel
@@ -36,6 +37,7 @@ class ImageBasedFiducialMarkersMasterModel(object):
         self._image_plane_scene = ImagePlaneScene(self)
         self._tracking_points_scene = TrackingPointsScene(self)
 
+        self._time_sequence = self._define_time_sequence()
         self.set_maximum_time_value(image_context_data.get_frame_count() / image_context_data.get_frames_per_second())
 
         self._make_connections()
@@ -79,9 +81,12 @@ class ImageBasedFiducialMarkersMasterModel(object):
         # self._frame_index_update(frame_index)
 
     def get_time_sequence(self):
+        return self._time_sequence
+
+    def _define_time_sequence(self):
         time_sequence = []
         for frame_value in range(self._image_plane_model.get_frame_count()):
-            time = self._image_plane_model.get_time_for_frame_index(frame_value)
+            time = self._image_plane_model.get_time_for_frame_index(frame_value + 1)
             time_sequence.append(time)
 
         return time_sequence

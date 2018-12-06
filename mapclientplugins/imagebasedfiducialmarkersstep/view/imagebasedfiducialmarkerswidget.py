@@ -36,18 +36,17 @@ class ImageBasedFiducialMarkersWidget(QtGui.QWidget):
         self._done_callback = None
 
         self._image_plane_model = model.get_image_plane_model()
-        tracking_points_model = model.get_tracking_points_model()
-        tracking_points_model.create_model()
-        tracking_points_model.set_context_menu_callback(self._show_context_menu)
-        tracking_points_scene = model.get_tracking_points_scene()
-        tracking_points_scene.create_graphics()
+        self._reset_button_clicked()
 
+        tracking_points_model = self._model.get_tracking_points_model()
         self._data_point_tool = DataPointTool(tracking_points_model, self._image_plane_model)
         self._tracking_tool = TrackingTool(model)
 
         self._setup_handlers()
         self._set_initial_ui_state()
         self._update_ui_state()
+
+        self._load_saved_data = False
 
         self._make_connections()
 
@@ -58,6 +57,8 @@ class ImageBasedFiducialMarkersWidget(QtGui.QWidget):
         self._ui.timePlayStop_pushButton.clicked.connect(self._time_play_stop_clicked)
         self._ui.timeLoop_checkBox.clicked.connect(self._time_loop_clicked)
         self._ui.track_pushButton.clicked.connect(self._track_button_clicked)
+        self._ui.reset_pushButton.clicked.connect(self._reset_button_clicked)
+        self._ui.cheat_pushButton.clicked.connect(self._cheat_button_clicked)
 
     def _done_clicked(self):
         self._model.done()
@@ -108,12 +109,25 @@ class ImageBasedFiducialMarkersWidget(QtGui.QWidget):
     def _update_ui_state(self):
         pass
 
+    def _reset_button_clicked(self):
+        tracking_points_model = self._model.get_tracking_points_model()
+        tracking_points_model.create_model()
+        tracking_points_model.set_context_menu_callback(self._show_context_menu)
+        tracking_points_scene = self._model.get_tracking_points_scene()
+        tracking_points_scene.create_graphics()
+
+    def _cheat_button_clicked(self):
+        self._load_saved_data = False if self._load_saved_data else True
+
     def _track_button_clicked(self):
+
         if self._tracking_tool.count():
             QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
             frame_index = self._model.get_frame_index()
             self._tracking_tool.track_key_points(frame_index)
             QtGui.QApplication.restoreOverrideCursor()
+        if self._load_saved_data and self._tracking_tool.count() == 0:
+            self._model.get_tracking_points_model()._recreate_saved_data()
 
     def _setup_handlers(self):
         basic_handler = SceneManipulation()
@@ -171,10 +185,6 @@ class ImageBasedFiducialMarkersWidget(QtGui.QWidget):
 
         menu.exec_(self.mapToGlobal(QtCore.QPoint(x, y) + self._ui.sceneviewer_widget.pos()))
 
-    def _label_clicked(self):
-        sender = self.sender()
-        print(sender.text())
-
     def register_done_callback(self, done_callback):
         self._done_callback = done_callback
 
@@ -185,16 +195,6 @@ class ImageBasedFiducialMarkersWidget(QtGui.QWidget):
         eye, look_at, up, angle = self._ui.sceneviewer_widget.get_view_parameters()
         self._settings['view-parameters'] = {'eye': eye, 'look_at': look_at, 'up': up, 'angle': angle}
         return self._settings
-
-    def set_images_info(self, images_info):
-        self._image_plane_model.load_images(images_info)
-        self._image_plane_scene.set_image_material()
-        frame_count = self._image_plane_model.get_frame_count()
-        value = self._model.get_frames_per_second()
-        duration = frame_count / value
-        self._ui.timeValue_doubleSpinBox.setMaximum(duration)
-        self._model.set_maximum_time_value(duration)
-        self._model.set_frame_index(1)
 
     def _update_time_value(self, value):
         self._ui.timeValue_doubleSpinBox.blockSignals(True)

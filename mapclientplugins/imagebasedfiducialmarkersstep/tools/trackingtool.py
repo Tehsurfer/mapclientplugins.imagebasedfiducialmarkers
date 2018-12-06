@@ -34,9 +34,9 @@ class TrackingTool(object):
             file_name = self._image_plane_model.get_image_file_name_at(image_index)
             self._process_image(file_name)
             previous_gray_image = self._processor.get_gray_image()
-            while image_index < number_of_images:
+            while image_index <= number_of_images:
                 time = self._image_plane_model.get_time_for_frame_index(image_index)
-                file_name = self._image_plane_model.get_image_file_name_at(image_index)
+                file_name = self._image_plane_model.get_image_file_name_at(image_index - 1)
                 self._process_image(file_name)
                 current_gray_image = self._processor.get_gray_image()
 

@@ -14,6 +14,7 @@ class ImagePlaneModel(object):
         self._duration_field = None
         self._image_based_material = None
         self._scaled_coordinate_field = None
+        self._time_sequence = []
 
         self._initialise()
 

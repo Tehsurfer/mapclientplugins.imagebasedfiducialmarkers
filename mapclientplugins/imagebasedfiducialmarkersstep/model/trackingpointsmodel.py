@@ -80,7 +80,7 @@ class TrackingPointsModel(object):
         self._selection_group_field = None
         self._key_points = []
         self._used_labels = []
-        self._unused_labels = FIDUCIAL_MARKER_LABELS
+        self._unused_labels = FIDUCIAL_MARKER_LABELS[:]
         self._context_menu_callback = None
 
     def get_region(self):
@@ -194,6 +194,29 @@ class TrackingPointsModel(object):
 
         return node
 
+    def _recreate_saved_data(self):
+        import json
+
+        with open(r'C:\Users\sparc\demo\data\heart\video\time_labelled_fiducial_marker_locations.json') as f:
+            contents = f.read()
+            saved_data = json.loads(contents)
+
+        field_module = self._coordinate_field.getFieldmodule()
+        field_module.beginChange()
+        field_cache = field_module.createFieldcache()
+        times = saved_data['time_array']
+        for label in saved_data:
+            if label != 'time_array':
+                locations = saved_data[label]
+                node = self._create_node(locations[0], times[0], label)
+                self._key_points.append(SegmentedKeyPoint(node, times[0], label))
+                field_cache.setNode(node)
+                for index, time in enumerate(times):
+                    field_cache.setTime(time)
+                    self._coordinate_field.assignReal(field_cache, locations[index])
+
+        field_module.endChange()
+
     def create_electrode_key_points(self, key_points):
         time = self._master_model.get_timekeeper_time()
         field_module = self._coordinate_field.getFieldmodule()
@@ -251,6 +274,9 @@ class TrackingPointsModel(object):
         field_module.endChange()
 
     def clear(self):
+        self._key_points = []
+        self._used_labels = []
+        self._unused_labels = FIDUCIAL_MARKER_LABELS[:]
         default_region = self._master_model.get_default_region()
         if self._region is not None:
             default_region.removeChild(self._region)

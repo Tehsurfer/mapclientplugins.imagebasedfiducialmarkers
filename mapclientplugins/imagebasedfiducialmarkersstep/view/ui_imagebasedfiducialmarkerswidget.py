@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'qt\imagebasedfiducialmarkerswidget.ui'
 #
-# Created: Sun Dec  2 13:56:20 2018
+# Created: Thu Dec  6 10:29:39 2018
 #      by: pyside-uic 0.2.15 running on PySide 1.2.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -10,7 +10,7 @@
 from PySide import QtCore, QtGui
 
 class Ui_ImageBasedFiducialMarkersWidget(object):
-    def setupUi(self, shared_open_gl_context, ImageBasedFiducialMarkersWidget):
+    def setupUi(self, shared_open_gl_widget, ImageBasedFiducialMarkersWidget):
         ImageBasedFiducialMarkersWidget.setObjectName("ImageBasedFiducialMarkersWidget")
         ImageBasedFiducialMarkersWidget.resize(870, 576)
         self.horizontalLayout = QtGui.QHBoxLayout(ImageBasedFiducialMarkersWidget)
@@ -39,16 +39,35 @@ class Ui_ImageBasedFiducialMarkersWidget(object):
         self.verticalLayout.addWidget(self.time_groupBox)
         self.tracking_groupBox = QtGui.QGroupBox(self.controlPanel_groupBox)
         self.tracking_groupBox.setObjectName("tracking_groupBox")
-        self.horizontalLayout_5 = QtGui.QHBoxLayout(self.tracking_groupBox)
-        self.horizontalLayout_5.setObjectName("horizontalLayout_5")
+        self.gridLayout = QtGui.QGridLayout(self.tracking_groupBox)
+        self.gridLayout.setObjectName("gridLayout")
         self.track_pushButton = QtGui.QPushButton(self.tracking_groupBox)
         self.track_pushButton.setObjectName("track_pushButton")
-        self.horizontalLayout_5.addWidget(self.track_pushButton)
+        self.gridLayout.addWidget(self.track_pushButton, 0, 0, 1, 1)
         spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout_5.addItem(spacerItem)
-        self.verticalLayout.addWidget(self.tracking_groupBox)
+        self.gridLayout.addItem(spacerItem, 0, 1, 1, 1)
+        self.reset_pushButton = QtGui.QPushButton(self.tracking_groupBox)
+        self.reset_pushButton.setObjectName("reset_pushButton")
+        self.gridLayout.addWidget(self.reset_pushButton, 2, 0, 1, 1)
         spacerItem1 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-        self.verticalLayout.addItem(spacerItem1)
+        self.gridLayout.addItem(spacerItem1, 1, 0, 1, 1)
+        self.verticalLayout.addWidget(self.tracking_groupBox)
+        spacerItem2 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        self.verticalLayout.addItem(spacerItem2)
+        self.frame_2 = QtGui.QFrame(self.controlPanel_groupBox)
+        self.frame_2.setFrameShape(QtGui.QFrame.StyledPanel)
+        self.frame_2.setFrameShadow(QtGui.QFrame.Raised)
+        self.frame_2.setObjectName("frame_2")
+        self.horizontalLayout_6 = QtGui.QHBoxLayout(self.frame_2)
+        self.horizontalLayout_6.setObjectName("horizontalLayout_6")
+        self.cheat_pushButton = QtGui.QPushButton(self.frame_2)
+        self.cheat_pushButton.setText("")
+        self.cheat_pushButton.setFlat(True)
+        self.cheat_pushButton.setObjectName("cheat_pushButton")
+        self.horizontalLayout_6.addWidget(self.cheat_pushButton)
+        spacerItem3 = QtGui.QSpacerItem(104, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.horizontalLayout_6.addItem(spacerItem3)
+        self.verticalLayout.addWidget(self.frame_2)
         self.groupBox = QtGui.QGroupBox(self.controlPanel_groupBox)
         self.groupBox.setTitle("")
         self.groupBox.setObjectName("groupBox")
@@ -73,11 +92,11 @@ class Ui_ImageBasedFiducialMarkersWidget(object):
         self.done_pushButton = QtGui.QPushButton(self.frame)
         self.done_pushButton.setObjectName("done_pushButton")
         self.horizontalLayout_2.addWidget(self.done_pushButton)
-        spacerItem2 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout_2.addItem(spacerItem2)
+        spacerItem4 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.horizontalLayout_2.addItem(spacerItem4)
         self.verticalLayout.addWidget(self.frame)
         self.horizontalLayout.addWidget(self.controlPanel_groupBox)
-        self.sceneviewer_widget = BaseSceneviewerWidget(ImageBasedFiducialMarkersWidget, shared_open_gl_context)
+        self.sceneviewer_widget = BaseSceneviewerWidget(ImageBasedFiducialMarkersWidget, shared_open_gl_widget)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(1)
         sizePolicy.setVerticalStretch(0)
@@ -98,6 +117,7 @@ class Ui_ImageBasedFiducialMarkersWidget(object):
         self.timeLoop_checkBox.setText(QtGui.QApplication.translate("ImageBasedFiducialMarkersWidget", "Loop", None, QtGui.QApplication.UnicodeUTF8))
         self.tracking_groupBox.setTitle(QtGui.QApplication.translate("ImageBasedFiducialMarkersWidget", "Tracking:", None, QtGui.QApplication.UnicodeUTF8))
         self.track_pushButton.setText(QtGui.QApplication.translate("ImageBasedFiducialMarkersWidget", "Track", None, QtGui.QApplication.UnicodeUTF8))
+        self.reset_pushButton.setText(QtGui.QApplication.translate("ImageBasedFiducialMarkersWidget", "Reset", None, QtGui.QApplication.UnicodeUTF8))
         self.statusText_label.setText(QtGui.QApplication.translate("ImageBasedFiducialMarkersWidget", "TextLabel", None, QtGui.QApplication.UnicodeUTF8))
         self.done_pushButton.setText(QtGui.QApplication.translate("ImageBasedFiducialMarkersWidget", "Done", None, QtGui.QApplication.UnicodeUTF8))
 
