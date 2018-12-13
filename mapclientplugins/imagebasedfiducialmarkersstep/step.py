@@ -69,6 +69,7 @@ class ImageBasedFiducialMarkersStep(WorkflowStepMountPoint):
             self._model.set_settings(all_settings['model'])
 
         self._view = ImageBasedFiducialMarkersWidget(self._model)
+        self._view.set_prepared_data_location(os.path.join(self._location, self._config['location']))
         if 'view' in all_settings:
             self._view.set_settings(all_settings['view'])
 
@@ -123,6 +124,7 @@ class ImageBasedFiducialMarkersStep(WorkflowStepMountPoint):
         # dlg = ConfigureDialog(self._main_window)
         dlg = ConfigureDialog()
         dlg.identifierOccursCount = self._identifierOccursCount
+        dlg.set_workflow_location(self._location)
         dlg.setConfig(self._config)
         dlg.validate()
         dlg.setModal(True)
@@ -162,6 +164,7 @@ class ImageBasedFiducialMarkersStep(WorkflowStepMountPoint):
         self._config.update(json.loads(string))
 
         d = ConfigureDialog()
+        d.set_workflow_location(self._location)
         d.identifierOccursCount = self._identifierOccursCount
         d.setConfig(self._config)
         self._configured = d.validate()

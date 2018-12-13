@@ -46,7 +46,7 @@ class ImageBasedFiducialMarkersWidget(QtGui.QWidget):
         self._set_initial_ui_state()
         self._update_ui_state()
 
-        self._load_saved_data = False
+        self._prepared_data_location = ''
 
         self._make_connections()
 
@@ -116,8 +116,11 @@ class ImageBasedFiducialMarkersWidget(QtGui.QWidget):
         tracking_points_scene = self._model.get_tracking_points_scene()
         tracking_points_scene.create_graphics()
 
+    def set_prepared_data_location(self, location):
+        self._prepared_data_location = location
+
     def _cheat_button_clicked(self):
-        self._load_saved_data = False if self._load_saved_data else True
+        self._tracking_tool.load_saved_data(self._prepared_data_location)
 
     def _track_button_clicked(self):
 
@@ -126,8 +129,6 @@ class ImageBasedFiducialMarkersWidget(QtGui.QWidget):
             frame_index = self._model.get_frame_index()
             self._tracking_tool.track_key_points(frame_index)
             QtGui.QApplication.restoreOverrideCursor()
-        if self._load_saved_data and self._tracking_tool.count() == 0:
-            self._model.get_tracking_points_model()._recreate_saved_data()
 
     def _setup_handlers(self):
         basic_handler = SceneManipulation()

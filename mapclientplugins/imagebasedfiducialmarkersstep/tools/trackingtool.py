@@ -54,6 +54,10 @@ class TrackingTool(object):
     def count(self):
         return self._tracking_points_model.count()
 
+    def load_saved_data(self, file_name):
+        self._tracking_points_model.create_model()
+        self._tracking_points_model.load_save_data(file_name)
+
     def _process_image(self, file_name):
         self._processor.read_image(file_name)
         self._processor.rgb_and_blur_and_hsv(threshold=9)

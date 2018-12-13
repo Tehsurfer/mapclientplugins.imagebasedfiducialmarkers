@@ -1,4 +1,5 @@
 
+import os
 
 from PySideX import QtWidgets
 from mapclientplugins.imagebasedfiducialmarkersstep.ui_configuredialog import Ui_ConfigureDialog
@@ -25,11 +26,15 @@ class ConfigureDialog(QtWidgets.QDialog):
         # Set a place holder for a callable that will get set from the step.
         # We will use this method to decide whether the identifier is unique.
         self.identifierOccursCount = None
+        self._previous_location = ''
+        self._workflow_location = ''
 
-        self._makeConnections()
+        self._make_connections()
 
-    def _makeConnections(self):
+    def _make_connections(self):
         self._ui.identifier_lineEdit.textChanged.connect(self.validate)
+        self._ui.preparedData_lineEdit.textChanged.connect(self.validate)
+        self._ui.preparedData_pushButton.clicked.connect(self._prepared_data_button_clicked)
 
     def accept(self):
         """
@@ -58,12 +63,24 @@ class ConfigureDialog(QtWidgets.QDialog):
         # The identifierOccursCount method is part of the interface to the workflow framework.
         value = self.identifierOccursCount(self._ui.identifier_lineEdit.text())
         valid = (value == 0) or (value == 1 and self._previousIdentifier == self._ui.identifier_lineEdit.text())
-        if valid:
-            self._ui.identifier_lineEdit.setStyleSheet(DEFAULT_STYLE_SHEET)
-        else:
-            self._ui.identifier_lineEdit.setStyleSheet(INVALID_STYLE_SHEET)
+        self._ui.identifier_lineEdit.setStyleSheet(DEFAULT_STYLE_SHEET if valid else INVALID_STYLE_SHEET)
 
-        return valid
+        location_valid = self._ui.preparedData_lineEdit.text() and \
+            os.path.isfile(os.path.join(self._workflow_location, self._ui.preparedData_lineEdit.text()))
+        self._ui.preparedData_lineEdit.setStyleSheet(DEFAULT_STYLE_SHEET if location_valid else INVALID_STYLE_SHEET)
+
+        return valid and location_valid
+
+    def set_workflow_location(self, location):
+        self._workflow_location = location
+
+    def _prepared_data_button_clicked(self):
+        location, _ = QtWidgets.QFileDialog.getOpenFileName(self, 'Select Prepared Data File.', self._previous_location)
+
+        if location:
+            self._previous_location = location
+            self._ui.preparedData_lineEdit.setText(os.path.relpath(location, self._workflow_location))
+            # self.validate()
 
     def getConfig(self):
         '''
@@ -72,7 +89,8 @@ class ConfigureDialog(QtWidgets.QDialog):
         identifier over the whole of the workflow.
         '''
         self._previousIdentifier = self._ui.identifier_lineEdit.text()
-        config = {'identifier': self._ui.identifier_lineEdit.text()}
+        config = {'identifier': self._ui.identifier_lineEdit.text(), 'location': self._ui.preparedData_lineEdit.text(),
+                  'previous_location': self._previous_location}
         return config
 
     def setConfig(self, config):
@@ -83,3 +101,7 @@ class ConfigureDialog(QtWidgets.QDialog):
         '''
         self._previousIdentifier = config['identifier']
         self._ui.identifier_lineEdit.setText(config['identifier'])
+        if 'location' in config:
+            self._ui.preparedData_lineEdit.setText(config['location'])
+        if 'previous_location' in config:
+            self._previous_location = config['previous_location']

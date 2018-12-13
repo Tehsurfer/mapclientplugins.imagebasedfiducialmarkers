@@ -194,10 +194,10 @@ class TrackingPointsModel(object):
 
         return node
 
-    def _recreate_saved_data(self):
+    def load_save_data(self, file_name):
         import json
 
-        with open(r'C:\Users\sparc\demo\data\heart\video\time_labelled_fiducial_marker_locations.json') as f:
+        with open(file_name) as f:
             contents = f.read()
             saved_data = json.loads(contents)
 
