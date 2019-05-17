@@ -5,7 +5,7 @@ import cv2
 
 class ImagePlaneModel(object):
 
-    def __init__(self, master_model):
+    def __init__(self, master_model, video_path):
         self._master_model = master_model
         self._region = None
         self._frames_per_second = -1
@@ -15,6 +15,7 @@ class ImagePlaneModel(object):
         self._image_based_material = None
         self._scaled_coordinate_field = None
         self._time_sequence = []
+        self._video_path = video_path
 
         self._initialise()
 
@@ -29,8 +30,7 @@ class ImagePlaneModel(object):
         self._image_field = self._image_field.castImage()
         material_module = context.getMaterialmodule()
         self._image_based_material = material_module.findMaterialByName('images')
-        videopath = "C:\\Users\jkho021\Videos\Captures\MAPClient - testflow 2019-05-02 16-25-08.mp4"
-        self.cap = cv2.VideoCapture(videopath)
+        self.cap = cv2.VideoCapture(self._video_path)
 
     def set_image_information(self, image_file_names, frames_per_second, image_dimensions):
         self._images_file_name_listing = image_file_names
