@@ -1,7 +1,7 @@
 from __future__ import division
 
 from opencmiss.utils.maths.algorithms import calculate_line_plane_intersection
-
+import cv2
 
 class ImagePlaneModel(object):
 
@@ -25,8 +25,12 @@ class ImagePlaneModel(object):
         field_module = self._region.getFieldmodule()
         self._scaled_coordinate_field = field_module.findFieldByName('scaled_coordinates')
         self._duration_field = field_module.findFieldByName('duration')
+        self._image_field = field_module.findFieldByName('volume_image')
+        self._image_field = self._image_field.castImage()
         material_module = context.getMaterialmodule()
         self._image_based_material = material_module.findMaterialByName('images')
+        videopath = "C:\\Users\jkho021\Videos\Captures\MAPClient - testflow 2019-05-02 16-25-08.mp4"
+        self.cap = cv2.VideoCapture(videopath)
 
     def set_image_information(self, image_file_names, frames_per_second, image_dimensions):
         self._images_file_name_listing = image_file_names
@@ -102,5 +106,12 @@ class ImagePlaneModel(object):
         duration = frame_count / self._frames_per_second
         frame_separation = 1 / frame_count
         initial_offset = frame_separation / 2
-        return int((time / duration - initial_offset) / frame_separation + 0.5) + 1
+
+        frame_id = int((time / duration - initial_offset) / frame_separation + 0.5) + 1
+
+        # self._image_field.setBuffer(self._images_file_name_listing[frame_id])
+        self.cap.set(1, frame_id - 1)
+        res, frame = self.cap.read()
+        self._image_field.setBuffer(frame.tobytes())
+        return frame_id
 

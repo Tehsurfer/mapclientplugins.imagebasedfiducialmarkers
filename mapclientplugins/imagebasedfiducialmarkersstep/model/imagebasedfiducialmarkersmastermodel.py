@@ -77,7 +77,7 @@ class ImageBasedFiducialMarkersMasterModel(object):
     def set_time_value(self, time):
         self._current_time = time
         self._timekeeper.setTime(time)
-        # frame_index = self._image_plane_model.get_frame_index_for_time(time) + 1
+        frame_index = self._image_plane_model.get_frame_index_for_time(time) + 1
         # self._frame_index_update(frame_index)
 
     def get_time_sequence(self):

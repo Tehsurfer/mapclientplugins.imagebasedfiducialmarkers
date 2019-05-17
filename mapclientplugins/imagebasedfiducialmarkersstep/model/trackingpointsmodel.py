@@ -213,7 +213,7 @@ class TrackingPointsModel(object):
                 field_cache.setNode(node)
                 for index, time in enumerate(times):
                     field_cache.setTime(time)
-                    self._coordinate_field.assignReal(field_cache, locations[index])
+                    result = self._coordinate_field.assignReal(field_cache, locations[index])
 
         field_module.endChange()
 

@@ -209,6 +209,8 @@ class ImageBasedFiducialMarkersWidget(QtGui.QWidget):
         else:
             self._ui.timeValue_doubleSpinBox.setValue(value)
         self._ui.timeValue_doubleSpinBox.blockSignals(False)
+        self._time_value_changed(value)
+
 
     def _time_value_changed(self, value):
         self._model.set_time_value(value)
