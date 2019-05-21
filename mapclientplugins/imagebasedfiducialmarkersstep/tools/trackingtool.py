@@ -31,15 +31,16 @@ class TrackingTool(object):
             number_of_images = self._image_plane_model.get_frame_count()
 
             image_index = start_index
-            file_name = self._image_plane_model.get_image_file_name_at(image_index)
+            file_name = self._image_plane_model.get_image_at(image_index)
             self._process_image(file_name)
             previous_gray_image = self._processor.get_gray_image()
             while image_index <= number_of_images:
                 time = self._image_plane_model.get_time_for_frame_index(image_index)
-                file_name = self._image_plane_model.get_image_file_name_at(image_index - 1)
+                file_name = self._image_plane_model.get_image_at(image_index - 1)
                 self._process_image(file_name)
                 current_gray_image = self._processor.get_gray_image()
 
+                # Check if you are getting all the created points here
                 new_numpy_points, st, err = self._object_tracker.lk(previous_gray_image, current_gray_image,
                                                                     numpy_points)
                 new_image_points = [(float(point[0]), float(point[1])) for point in new_numpy_points]

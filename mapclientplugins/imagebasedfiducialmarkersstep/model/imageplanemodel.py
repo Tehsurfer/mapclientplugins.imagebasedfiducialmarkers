@@ -58,6 +58,12 @@ class ImagePlaneModel(object):
     def get_image_file_name_at(self, index):
         return self._images_file_name_listing[index]
 
+    def get_image_at(self, index):
+        self.cap.set(1, index)
+        res, frame = self.cap.read()
+        frame = cv2.flip(frame, 0)
+        return frame
+
     def calculate_image_pixels_rectangle(self, top_left_mesh_location, bottom_right_mesh_location):
         """
         The origin for the rectangle in the image is the top left corner, the mesh locations are given from
@@ -110,8 +116,9 @@ class ImagePlaneModel(object):
         frame_id = int((time / duration - initial_offset) / frame_separation + 0.5) + 1
 
         # self._image_field.setBuffer(self._images_file_name_listing[frame_id])
-        self.cap.set(1, frame_id - 1)
+        self.cap.set(1, frame_id)
         res, frame = self.cap.read()
+        frame = cv2.flip(frame, 0)
         self._image_field.setBuffer(frame.tobytes())
         return frame_id
 
