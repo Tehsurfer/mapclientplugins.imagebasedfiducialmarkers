@@ -8,7 +8,7 @@ from mapclientplugins.imagebasedfiducialmarkersstep.model.imageplanemodel import
 from mapclientplugins.imagebasedfiducialmarkersstep.model.trackingpointsmodel import TrackingPointsModel
 from mapclientplugins.imagebasedfiducialmarkersstep.scene.imageplanescene import ImagePlaneScene
 from mapclientplugins.imagebasedfiducialmarkersstep.scene.trackingpointsscene import TrackingPointsScene
-
+from mapclientplugins.imagebasedfiducialmarkersstep.model.databasemodel import CloudDataBase
 
 class ImageBasedFiducialMarkersMasterModel(object):
 
@@ -29,6 +29,7 @@ class ImageBasedFiducialMarkersMasterModel(object):
         self._time_value_update = None
         self._frame_index_update = None
 
+
         self._image_plane_model = ImagePlaneModel(self, image_context_data.get_video_path())
         self._image_plane_model.set_image_information(image_context_data.get_image_file_names(),
                                                       image_context_data.get_frames_per_second(),
@@ -37,6 +38,10 @@ class ImageBasedFiducialMarkersMasterModel(object):
         self._image_plane_scene = ImagePlaneScene(self)
         self._tracking_points_scene = TrackingPointsScene(self)
 
+        self.cloudDB = CloudDataBase(image_context_data.get_video_path().split('\\')[-1])
+        # self.initialise_key_points()
+
+        self.number_of_frames = self._image_plane_model.get_frame_count()
         self._time_sequence = self._define_time_sequence()
         self.set_maximum_time_value(image_context_data.get_frame_count() / image_context_data.get_frames_per_second())
 
@@ -66,10 +71,22 @@ class ImageBasedFiducialMarkersMasterModel(object):
     def register_time_value_update_callback(self, time_value_update_callback):
         self._time_value_update = time_value_update_callback
 
-    def set_frame_index(self, frame_index):
+    def set_frame_index(self, frame_index, first_load=False):
         self._current_time = self._image_plane_model.get_time_for_frame_index(frame_index)
         self._timekeeper.setTime(self._current_time)
         self._time_value_update(self._current_time)
+
+        self._tracking_points_model.save_key_points_at(frame_index - 1, self._image_plane_model.get_time_for_frame_index(frame_index - 1))
+
+        cloud_data = self.cloudDB.get_data_at_frame(frame_index)
+        self._tracking_points_model.set_frame(frame_index, cloud_data)
+
+    def initialise_key_points(self):
+        for frame in self.cloudDB.data_dict['AnnotatedFrames']:
+            self._tracking_points_model.set_key_points_at_time(self.cloudDB.data_dict['AnnotatedFrames'][frame],
+                                                               self._image_plane_model.get_time_for_frame_index(int(frame)))
+
+
 
     def get_frame_index(self):
         return self._image_plane_model.get_frame_index_for_time(self._current_time)

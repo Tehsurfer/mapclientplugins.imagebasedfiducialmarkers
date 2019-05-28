@@ -80,6 +80,7 @@ class TrackingPointsModel(object):
         self._selection_group_field = None
         self._key_points = []
         self._used_labels = []
+        self._annotations = []
         self._unused_labels = FIDUCIAL_MARKER_LABELS[:]
         self._context_menu_callback = None
 
@@ -227,16 +228,14 @@ class TrackingPointsModel(object):
         field_module.endChange()
 
     def set_key_points_at_time(self, key_points, time):
-        assert len(key_points) == len(self._key_points)
         field_module = self._coordinate_field.getFieldmodule()
         field_module.beginChange()
         field_cache = field_module.createFieldcache()
         field_cache.setTime(time)
-        for index, key_point in enumerate(self._key_points):
-            node = key_point.get_node()
+        for index, key_point in enumerate(key_points):
+
             coordinates = [key_points[index][0], key_points[index][1], 0.0]
-            field_cache.setNode(node)
-            result = self._coordinate_field.assignReal(field_cache, coordinates)
+            node = self._create_node(coordinates, time)
 
         field_module.endChange()
 
@@ -253,6 +252,12 @@ class TrackingPointsModel(object):
                 key_points.append(coordinates)
 
         return key_points
+
+    def save_key_points_at(self, frameIndex, time):
+        self._annotations.append({str(frameIndex): self.get_key_points(time)})
+
+    def get_additions(self):
+        return self._annotations
 
     def create_model(self):
         self.clear()
@@ -280,6 +285,23 @@ class TrackingPointsModel(object):
         default_region = self._master_model.get_default_region()
         if self._region is not None:
             default_region.removeChild(self._region)
+
+    def set_frame(self, frameIndex, cloudData):
+
+        self.clear_nodes()
+        self._key_points = []
+        self._used_labels = []
+        self._unused_labels = FIDUCIAL_MARKER_LABELS[:]
+
+        if cloudData:
+            for point in cloudData:
+                self.create_segmented_key_point(point)
+
+    def clear_nodes(self):
+        for i, _ in enumerate(self._key_points):
+            node = self._get_node(i + 1)
+            node_set = node.getNodeset()
+            node_set.destroyNode(node)
 
     def context_menu_requested(self, node_id, x, y):
         self._context_menu_callback(x, y, self._used_labels, self._unused_labels)

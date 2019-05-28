@@ -10,19 +10,21 @@ from mapclientplugins.imagebasedfiducialmarkersstep.handlers.datapointremover im
 from mapclientplugins.imagebasedfiducialmarkersstep.static.strings import SET_TRACKING_POINTS_STRING
 from mapclientplugins.imagebasedfiducialmarkersstep.tools.datapointtool import DataPointTool
 from mapclientplugins.imagebasedfiducialmarkersstep.tools.trackingtool import TrackingTool
-from mapclientplugins.imagebasedfiducialmarkersstep.view.ui_imagebasedfiducialmarkerswidget\
-    import Ui_ImageBasedFiducialMarkersWidget
+from mapclientplugins.imagebasedfiducialmarkersstep.view.annotator_ui\
+    import Ui_AnnotatorWidget
 
 PLAY_TEXT = 'Play'
 STOP_TEXT = 'Stop'
 
+import numpy as np
+import pyqtgraph as pg
 
 class ImageBasedFiducialMarkersWidget(QtGui.QWidget):
 
     def __init__(self, model, parent=None):
         super(ImageBasedFiducialMarkersWidget, self).__init__(parent)
-        self._ui = Ui_ImageBasedFiducialMarkersWidget()
-        self._ui.setupUi(model.get_shareable_open_gl_widget(), self)
+        self._ui = Ui_AnnotatorWidget()
+        self._ui.setupUi(self, model.get_shareable_open_gl_widget())
         self._ui.sceneviewer_widget.set_context(model.get_context())
 
         self._settings = {'view-parameters': {}}
@@ -49,16 +51,53 @@ class ImageBasedFiducialMarkersWidget(QtGui.QWidget):
         self._prepared_data_location = ''
 
         self._make_connections()
+        self._update_progress_bar()
 
     def _make_connections(self):
         self._ui.sceneviewer_widget.graphics_initialized.connect(self._graphics_initialized)
         self._ui.done_pushButton.clicked.connect(self._done_clicked)
         self._ui.timeValue_doubleSpinBox.valueChanged.connect(self._time_value_changed)
-        self._ui.timePlayStop_pushButton.clicked.connect(self._time_play_stop_clicked)
+        # self._ui.timePlayStop_pushButton.clicked.connect(self._time_play_stop_clicked)
         self._ui.timeLoop_checkBox.clicked.connect(self._time_loop_clicked)
-        self._ui.track_pushButton.clicked.connect(self._track_button_clicked)
+        # self._ui.track_pushButton.clicked.connect(self._track_button_clicked)
         self._ui.reset_pushButton.clicked.connect(self._reset_button_clicked)
-        self._ui.cheat_pushButton.clicked.connect(self._cheat_button_clicked)
+        self._ui.nextFrame_pushButton.clicked.connect(self._next_frame_clicked)
+        self._ui.previousFrame_pushButton.clicked.connect(self._prev_frame_clicked)
+        self._ui.cloudUpdate.clicked.connect(self._cloud_sync)
+        self._ui.plotProgress.clicked.connect(self._plot_progress)
+
+    def _next_frame_clicked(self):
+        current_frame = self._model.get_frame_index()
+        new_frame = current_frame + self._ui.FrameMultiplier.value()
+        self._model.set_frame_index(new_frame)
+        self._update_progress_bar()
+        self._update_frame_counter(new_frame)
+
+    def _prev_frame_clicked(self):
+        current_frame = self._model.get_frame_index()
+        new_frame = current_frame - self._ui.FrameMultiplier.value()
+        self._model.set_frame_index(new_frame)
+        self._update_progress_bar()
+        self._update_frame_counter(new_frame)
+
+    def _update_progress_bar(self):
+        total_annotated = len(self._model.cloudDB.data_dict['AnnotatedFrames'] ) + \
+                          len(self._model._tracking_points_model._annotations)
+        fraction = total_annotated * self._ui.FrameMultiplier.value() / self._model.number_of_frames
+        self._ui.progressBar.setProperty("value", fraction * 100)
+
+    def _update_frame_counter(self, value):
+        self._ui.label_2.setText(str(value))
+
+    def _plot_progress(self):
+        plot_data = np.zeros(self._model.number_of_frames)
+        for frame in self._model.cloudDB.data_dict['AnnotatedFrames']:
+            plot_data[int(frame)] = 1
+        pg.plot(plot_data)
+
+    def _cloud_sync(self):
+        additions = self._model._tracking_points_model.get_additions()
+        self._model.cloudDB.upload_additions_to_database(additions, modify=self._ui.modifcationsAllowed.isChecked())
 
     def _done_clicked(self):
         self._model.done()
@@ -87,8 +126,8 @@ class ImageBasedFiducialMarkersWidget(QtGui.QWidget):
         self._ui.timeLoop_checkBox.setChecked(self._model.is_time_loop())
         self._frame_index_value_changed(1)
         self._enter_set_tracking_points()
-        minimum_label_width = self._calculate_minimum_label_width()
-        self._ui.statusText_label.setMinimumWidth(minimum_label_width)
+        # minimum_label_width = self._calculate_minimum_label_width()
+        # self._ui.statusText_label.setMinimumWidth(minimum_label_width)
         maximum_time = self._image_plane_model.get_frame_count() / self._image_plane_model.get_frames_per_second()
         frame_separation = 1 / self._image_plane_model.get_frames_per_second()
         self._ui.timeValue_doubleSpinBox.setDecimals(8)
@@ -98,13 +137,14 @@ class ImageBasedFiducialMarkersWidget(QtGui.QWidget):
         self._ui.timeValue_doubleSpinBox.setValue(frame_separation / 2)
 
     def _calculate_minimum_label_width(self):
-        label = self._ui.statusText_label
-        label.setWordWrap(True)
-        label.setText(SET_TRACKING_POINTS_STRING)
-        maximum_width = 0
-        width = label.fontMetrics().boundingRect(label.text()).width()
-        maximum_width = max(maximum_width, width)
-        return maximum_width / 3.0
+        # label = self._ui.statusText_label
+        # label.setWordWrap(True)
+        # label.setText(SET_TRACKING_POINTS_STRING)
+        # maximum_width = 0
+        # width = label.fontMetrics().boundingRect(label.text()).width()
+        # maximum_width = max(maximum_width, width)
+        # return maximum_width / 3.0
+        pass
 
     def _update_ui_state(self):
         pass
@@ -211,7 +251,6 @@ class ImageBasedFiducialMarkersWidget(QtGui.QWidget):
         self._ui.timeValue_doubleSpinBox.blockSignals(False)
         self._time_value_changed(value)
 
-
     def _time_value_changed(self, value):
         self._model.set_time_value(value)
 
@@ -231,4 +270,7 @@ class ImageBasedFiducialMarkersWidget(QtGui.QWidget):
         self._model.set_time_loop(self._ui.timeLoop_checkBox.isChecked())
 
     def _frame_index_value_changed(self, value):
-        self._model.set_frame_index(value)
+        if value == 1:
+            self._model.set_frame_index(value, first_load=True)
+        else:
+            self._model.set_frame_index(value)

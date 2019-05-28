@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>ImageBasedFiducialMarkersWidget</class>
- <widget class="QWidget" name="ImageBasedFiducialMarkersWidget">
+ <class>AnnotatorWidget</class>
+ <widget class="QWidget" name="AnnotatorWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -156,6 +156,13 @@
        </widget>
       </item>
       <item>
+       <widget class="QCheckBox" name="modifcationsAllowed">
+        <property name="text">
+         <string>Allow Database Modifications when syncing</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QFrame" name="frame_2">
         <property name="frameShape">
          <enum>QFrame::StyledPanel</enum>
@@ -220,7 +227,6 @@
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
-     <zorder>controlPanel_groupBox</zorder>
     </widget>
    </item>
   </layout>
