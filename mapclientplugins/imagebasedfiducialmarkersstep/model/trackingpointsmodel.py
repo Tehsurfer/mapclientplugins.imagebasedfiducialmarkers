@@ -27,10 +27,14 @@ FIDUCIAL_MARKER_LABELS = [
     'rv_apex',
     'lv1',
     'lv2',
+    'lv3'
     'sept1',
     'sept2',
+    'sept3',
+    'sept4'
     'rv1',
     'rv2',
+    'rv3'
     'rb1',
     'rb2',
     'lb1',

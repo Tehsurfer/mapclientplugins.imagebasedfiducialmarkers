@@ -8,7 +8,11 @@ class CloudDataBase(object):
         self.data_dict = {}
         self.video_name = videoName
         self.database_locations = {'P1760 IVC Occ_Trim.mp4': 'https://jsonstorage.net/api/items/40bc8559-51a0-45ea-a93d-c16264011992',
-                                   'P1760 IVC Occ.MOV': 'https://jsonstorage.net/api/items/0dd64617-0d18-49c8-bd94-3f9e26eb4c0a'}
+                                   'P1760 IVC Occ.MOV': 'https://jsonstorage.net/api/items/0dd64617-0d18-49c8-bd94-3f9e26eb4c0a',
+                                    'P1760 LCVN 2x THR.MOV': 'https://jsonstorage.net/api/items/6b229986-b0ad-4d4c-bc5b-55865d367092',
+                                   'P1760 LCVN THR.MOV':'https://jsonstorage.net/api/items/b53a584d-cfbc-436e-a3ff-6a156af8055f',
+                                    'P1760 RST THR.MOV':'https://jsonstorage.net/api/items/62c10113-3eab-4618-95e5-fceec211f0a5',
+                                   }
         self.data_dict = self.retrieve_database()
 
     def load_json(self, filename):
