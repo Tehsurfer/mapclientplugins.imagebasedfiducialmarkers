@@ -1,2 +1,5 @@
 numpy
 pyqtgraph
+PySide
+git+https://github.com/hsorby/opencmiss.utils.git
+git+https://github.com/hsorby/PySideX.git
