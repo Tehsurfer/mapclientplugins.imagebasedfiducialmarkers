@@ -11,6 +11,7 @@ class NodeCreator(AbstractNodeDataObject):
         super(NodeCreator, self).__init__(['coordinates'])
         self._coordinates = coordinates
         self._label = None
+        self._group = None
 
     def coordinates(self):
         return self._coordinates
@@ -18,8 +19,14 @@ class NodeCreator(AbstractNodeDataObject):
     def set_label(self, label):
         self._label = label
 
+    def set_group(self, group):
+        self._group = group
+
     def label(self):
         return self._label
+
+    def group(self):
+        return self._group
 
 
 FIDUCIAL_MARKER_LABELS = [
@@ -81,10 +88,13 @@ class TrackingPointsModel(object):
         self._coordinate_field = None
         self._label_field = None
         self._selection_group = None
+        self._current_group = None
         self._selection_group_field = None
+        self._group_counter = {}
+        self._group_list = []
         self._key_points = []
         self._used_labels = []
-        self._annotations = []
+        self._annotations = {}
         self._unused_labels = FIDUCIAL_MARKER_LABELS[:]
         self._context_menu_callback = None
 
@@ -93,6 +103,12 @@ class TrackingPointsModel(object):
 
     def get_coordinate_field(self):
         return self._coordinate_field
+
+    def set_group(self, group):
+        self._current_group = group
+        if group not in self._group_list:
+            self._group_list.append(group)
+            self._group_counter[group] = 1
 
     def count(self):
         return len(self._key_points)
@@ -110,14 +126,15 @@ class TrackingPointsModel(object):
         node = self._get_node(identifier)
         return self._selection_group.containsNode(node)
 
-    def _create_node(self, location, time, label=None):
+    def _create_node(self, location, time, label=None, group=None):
         field_module = self._coordinate_field.getFieldmodule()
         node_creator = NodeCreator(location)
         node_creator.set_time_sequence(self._master_model.get_time_sequence())
         node_creator.set_time_sequence_field_names(['coordinates'])
-        if label is not None:
-            node_creator.set_field_names(['coordinates', 'label'])
+        if label is not None and group is not None:
+            node_creator.set_field_names(['coordinates', 'label', 'group'])
             node_creator.set_label(label)
+            node_creator.set_group(group)
             node_creator.set_time_sequence_field_names(['coordinates'])
         identifier = create_node(field_module, node_creator,
                                  node_set_name='datapoints', time=time)
@@ -180,20 +197,18 @@ class TrackingPointsModel(object):
         return self._label_field
 
     def _get_next_label(self):
-        if len(self._unused_labels) > 0:
-            label = self._unused_labels.pop(0)
-        else:
-            label = self._used_labels.pop(0)
-
-        self._used_labels.append(label)
-
+        number_in_group = self._group_counter[self._current_group]
+        label = self._current_group + str(number_in_group)
+        self._group_counter[self._current_group] = number_in_group + 1
         return label
 
-    def create_segmented_key_point(self, location):
+    def create_segmented_key_point(self, location, group='none'):
         time = self._master_model.get_timekeeper_time()
         node_time = _get_nearest_match(self._master_model.get_time_sequence(), time)
+        if group is not 'none':
+            self.set_group(group)
         label = self._get_next_label()
-        node = self._create_node(location, node_time, label=label)
+        node = self._create_node(location, node_time, label=label, group=self._current_group)
         self.select_node(node.getIdentifier())
         self._key_points.append(SegmentedKeyPoint(node, node_time, label))
 
@@ -246,19 +261,23 @@ class TrackingPointsModel(object):
     def get_key_points(self, time):
         key_points = []
         field_module = self._coordinate_field.getFieldmodule()
+        group = field_module.findFieldByName('group')
         field_cache = field_module.createFieldcache()
         for key_point in self._key_points:
             node = key_point.get_node()
             field_cache.setNode(node)
             field_cache.setTime(time)
             result, coordinates = self._coordinate_field.evaluateReal(field_cache, 3)
+            group_name = group.evaluateString(field_cache)
             if result == CMISS_OK:
-                key_points.append(coordinates)
+                key_points.append((group_name, coordinates))
 
         return key_points
 
     def save_key_points_at(self, frameIndex, time):
-        self._annotations.append({str(frameIndex): self.get_key_points(time)})
+        key_points = self.get_key_points(time)
+        if len(key_points) is not 0:
+            self._annotations[str(frameIndex)] = self.get_key_points(time)
 
     def get_additions(self):
         return self._annotations
@@ -274,6 +293,8 @@ class TrackingPointsModel(object):
         field_module.beginChange()
         self._label_field = field_module.createFieldStoredString()
         self._label_field.setName('label')
+        self._group_field = field_module.createFieldStoredString()
+        self._group_field.setName('group')
         node_set = field_module.findNodesetByName('datapoints')
 
         # Setup the selection fields
@@ -290,16 +311,24 @@ class TrackingPointsModel(object):
         if self._region is not None:
             default_region.removeChild(self._region)
 
+    def reset_counters(self):
+        for key in self._group_counter:
+            self._group_counter[key] = 1
+
     def set_frame(self, frameIndex, cloudData):
 
         self.clear_nodes()
         self._key_points = []
-        self._used_labels = []
-        self._unused_labels = FIDUCIAL_MARKER_LABELS[:]
 
         if cloudData:
             for point in cloudData:
-                self.create_segmented_key_point(point)
+                group = point[0]
+                coordinates = point[1]
+                self.create_segmented_key_point(coordinates, group)
+        elif str(frameIndex) in self._annotations:
+            for point in self._annotations[str(frameIndex)]:
+                self.create_segmented_key_point(point[1], point[0])
+
 
     def clear_nodes(self):
         for i, _ in enumerate(self._key_points):

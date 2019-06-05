@@ -12,6 +12,7 @@ class CloudDataBase(object):
                                     'P1760 LCVN 2x THR.MOV': 'https://jsonstorage.net/api/items/6b229986-b0ad-4d4c-bc5b-55865d367092',
                                    'P1760 LCVN THR.MOV':'https://jsonstorage.net/api/items/b53a584d-cfbc-436e-a3ff-6a156af8055f',
                                     'P1760 RST THR.MOV':'https://jsonstorage.net/api/items/62c10113-3eab-4618-95e5-fceec211f0a5',
+                                    'Group Labels': 'https://jsonstorage.net/api/items/67acab43-df40-4e99-8aea-ef8d9f4e9853'
                                    }
         self.data_dict = self.retrieve_database()
 
@@ -39,12 +40,11 @@ class CloudDataBase(object):
 
         cloud_dict = self.retrieve_database()
 
-        for frame_addition in frame_additions:
-            frame_key = list(frame_addition.keys())[0]
+        for frame_key in frame_additions:
             if frame_key not in cloud_dict['AnnotatedFrames']:
-                cloud_dict['AnnotatedFrames'][frame_key] = frame_addition[frame_key]
+                cloud_dict['AnnotatedFrames'][frame_key] = frame_additions[frame_key]
             elif modify:
-                cloud_dict['AnnotatedFrames'][frame_key] = frame_addition[frame_key]
+                cloud_dict['AnnotatedFrames'][frame_key] = frame_additions[frame_key]
 
         headers = {'Content-Type': "application/json; charset=utf-8",'dataType': "json"}
         data = json.dumps(cloud_dict)
@@ -56,3 +56,25 @@ class CloudDataBase(object):
             print(f'Error! Could not upload to the database: {resp.json()}')
 
         self.data_dict = cloud_dict
+
+    def retrieve_groups(self):
+        url = self.database_locations['Group Labels']
+        resp = requests.get(url)
+        if resp.status_code == 200:
+            return resp.json()['groups']
+        else:
+            print(f'Error! Could not connect to the database: {url} /'
+                  f' Error was: {resp.json()}')
+
+    def add_group(self, group):
+        old_groups = self.retrieve_groups()
+        if group not in old_groups:
+            old_groups.append(group)
+        headers = {'Content-Type': "application/json; charset=utf-8",'dataType': "json"}
+        data = json.dumps({'groups': old_groups})
+        url = self.database_locations['Group Labels']
+        resp = requests.put(url, headers=headers, data=data)
+        if resp.status_code == 200 or 201:
+            print(f'Data successfull uploaded: {resp.json()})')
+        else:
+            print(f'Error! Could not upload to the database: {resp.json()}')

@@ -65,26 +65,46 @@ class ImageBasedFiducialMarkersWidget(QtGui.QWidget):
         self._ui.previousFrame_pushButton.clicked.connect(self._prev_frame_clicked)
         self._ui.cloudUpdate.clicked.connect(self._cloud_sync)
         self._ui.plotProgress.clicked.connect(self._plot_progress)
+        self._ui.pushButton.clicked.connect(self._add_group_to_drop_down_list)
+        self._ui.groupBox.currentIndexChanged.connect(self._change_group)
 
     def _next_frame_clicked(self):
         current_frame = self._model.get_frame_index()
         new_frame = current_frame + self._ui.FrameMultiplier.value()
-        self._model.set_frame_index(new_frame)
+        self._model.set_frame_index(new_frame, current_frame)
         self._update_progress_bar()
         self._update_frame_counter(new_frame)
+        self._change_group()
 
     def _prev_frame_clicked(self):
         current_frame = self._model.get_frame_index()
         new_frame = current_frame - self._ui.FrameMultiplier.value()
-        self._model.set_frame_index(new_frame)
+        self._model.set_frame_index(new_frame, current_frame)
         self._update_progress_bar()
         self._update_frame_counter(new_frame)
 
     def _update_progress_bar(self):
         total_annotated = len(self._model.cloudDB.data_dict['AnnotatedFrames'] ) + \
-                          len(self._model._tracking_points_model._annotations)
+                          len(self._model._tracking_points_model._annotations.keys())
         fraction = total_annotated * self._ui.FrameMultiplier.value() / self._model.number_of_frames
         self._ui.progressBar.setProperty("value", fraction * 100)
+
+
+    def _populate_groups_dropdown(self):
+        groups = self._model.cloudDB.retrieve_groups()
+        for item in groups:
+            self._ui.groupBox.addItem(item)
+        self._set_group(groups[0])
+
+    def _add_group_to_drop_down_list(self):
+        self._ui.groupBox.addItem(self._ui.group_lineEdit.text())
+        self._model.cloudDB.add_group(self._ui.group_lineEdit.text())
+
+    def _change_group(self):
+        self._set_group(self._ui.groupBox.currentText())
+
+    def _set_group(self, group):
+        self._model._tracking_points_model.set_group(group)
 
     def _update_frame_counter(self, value):
         self._ui.label_2.setText(str(value))
@@ -123,6 +143,7 @@ class ImageBasedFiducialMarkersWidget(QtGui.QWidget):
                 self._ui.sceneviewer_widget.set_view_parameters(eye, look_at, up, angle)
 
     def _set_initial_ui_state(self):
+        self._populate_groups_dropdown()
         self._ui.timeLoop_checkBox.setChecked(self._model.is_time_loop())
         self._frame_index_value_changed(1)
         self._enter_set_tracking_points()
@@ -271,6 +292,6 @@ class ImageBasedFiducialMarkersWidget(QtGui.QWidget):
 
     def _frame_index_value_changed(self, value):
         if value == 1:
-            self._model.set_frame_index(value, first_load=True)
+            self._model.set_frame_index(value,value, first_load=True)
         else:
-            self._model.set_frame_index(value)
+            self._model.set_frame_index(value,value)
