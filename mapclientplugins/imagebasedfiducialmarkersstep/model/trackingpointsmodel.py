@@ -320,14 +320,15 @@ class TrackingPointsModel(object):
         self.clear_nodes()
         self._key_points = []
 
-        if cloudData:
+        if str(frameIndex) in self._annotations:
+            for point in self._annotations[str(frameIndex)]:
+                self.create_segmented_key_point(point[1], point[0])
+        elif cloudData:
             for point in cloudData:
                 group = point[0]
                 coordinates = point[1]
                 self.create_segmented_key_point(coordinates, group)
-        elif str(frameIndex) in self._annotations:
-            for point in self._annotations[str(frameIndex)]:
-                self.create_segmented_key_point(point[1], point[0])
+
 
 
     def clear_nodes(self):
